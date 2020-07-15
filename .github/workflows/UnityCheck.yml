@@ -1,4 +1,4 @@
-name: Unity Build Check
+name: Build project
 
 on:
   pull_request: {}
@@ -8,37 +8,37 @@ env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 jobs:
-  build:
-    name: Unity Build Test
+  testAllModes:
+    name: Test in ${{ matrix.testMode }} on version ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - Project_E/Project E/
+        unityVersion:
+          - 2019.2.11f1
+        testMode:
+          - playmode
+          - editmode
     steps:
-      # Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v2.3.1
+      - uses: actions/checkout@v2
         with:
           lfs: true
-
-      # Cache
-      - uses: actions/cache@v2.0.0
+      - uses: actions/cache@v1.1.0
         with:
-          path: Library
-          key: Library
-
-      # Test
-      - name: Run tests
-        uses: webbertakken/unity-test-runner@v1.6
+          path: ${{ matrix.projectPath }}/Library
+          key: Library-${{ matrix.projectPath }}
+          restore-keys: |
+            Library-
+      - uses: webbertakken/unity-test-runner@v1.4
+        id: tests
         with:
-          unityVersion: 2019.2.11f1
-
-      # Build
-      - name: Build project
-        uses: webbertakken/unity-builder@v1.1
-        with:
-          unityVersion: 2019.2.11f1
-          targetPlatform: WebGL
-
-      # Output
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          testMode: ${{ matrix.testMode }}
+          artifactsPath: ${{ matrix.testMode }}-artifacts
       - uses: actions/upload-artifact@v1
         with:
-          name: Build
-          path: build
+          name: Test results for ${{ matrix.testMode }}
+          path: ${{ steps.tests.outputs.artifactsPath }}
