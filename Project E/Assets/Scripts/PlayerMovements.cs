@@ -45,12 +45,13 @@ public class PlayerMovements : MonoBehaviour
         inputs = new Vector3(inputX, 0f, inputZ);
         if(inputs != Vector3.zero)
         {
-             inputs = Quaternion.Euler(0f, Camera.main.transform.localEulerAngles.y, 0f) * inputs;
-             transform.rotation = Quaternion.LookRotation(inputs);
-        }
-        player.Move(inputs * Time.deltaTime * playerStats.playerSpeed);
-       
+            inputs = Quaternion.Euler(0f, Camera.main.transform.localEulerAngles.y, 0f) * inputs;
+            Quaternion rotateMe = Quaternion.LookRotation(inputs);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotateMe, Time.deltaTime * playerStats.playerRotationSpeed);
 
+            
+        }       
+        player.Move(inputs * Time.deltaTime * playerStats.playerSpeed);       
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
