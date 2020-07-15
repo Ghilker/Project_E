@@ -106,7 +106,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa10d0cca4902ec4e90a53bcdafa3fba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canAttack: 1
   knockBackForce: 5
   weaponDamage: 15
   tagCustom: Weapon
