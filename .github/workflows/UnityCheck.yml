@@ -1,151 +1,114 @@
-name: Actions 😎
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@Ghilker 
+webbertakken
+/
+unity-builder
+5
+11922
+Code
+Issues
+5
+Pull requests
+1
+Actions
+Projects
+Wiki
+Security
+Insights
+unity-builder/.github/workflows/main.yml
+@webbertakken
+webbertakken Remove androidVersionCode from default workflow
+Latest commit 96eeaf9 7 days ago
+ History
+ 3 contributors
+@webbertakken@benoitdion@Rabadash8820
+105 lines (100 sloc)  8.27 KB
+  
+name: Actions
 
 on:
   pull_request: {}
   push: { branches: [master] }
 
 env:
-  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  CODECOV_TOKEN: '2f2eb890-30e2-4724-83eb-7633832cf0de'
 
 jobs:
-  requestManualActivationFile:
-    name: Request manual activation file 🔑
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
-      # Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v1
-
-      # Request manual activation file 
-      - name: Request manual activation file
-        uses: webbertakken/unity-request-activation-file@v1.1
-        id: getManualLicenseFile
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
         with:
-          unityVersion: 2019.2.11f1 
+          node-version: 12.x
+      - run: yarn
+      - run: yarn lint
+      - run: yarn test --coverage
+      - run: bash <(curl -s https://codecov.io/bash)
+      - run: yarn build || { echo "build command should always succeed" ; exit 61; }
+      - run: yarn build --quiet && git diff --quiet action || { echo "action should be auto generated" ; git diff action ; exit 62; }
 
-      # Upload artifact (Unity_v20XX.X.XXXX.alf)
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: Manual Activation File
-          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
-
-  requestActivation:
-    name: Request activation ✔
+  buildForAllPlatforms:
+    name: Build for ${{ matrix.targetPlatform }} on version ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
-    steps:
-      # Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v1
+    strategy:
+      fail-fast: false
+      matrix:
+        projectPath:
+          - test-project
+        unityVersion:
+          - 2019.2.11f1
+          - 2019.3.15f1
+        include:
+          # Please be polite; don't copy my personal licenses.
+          # These are here because they are needed to allowing pull requests from forks to unity-builder.
+          # You should be using ${{ secrets.UNITY_LICENSE_2019_3_15 }} here.
+          - unityVersion: 2019.2.11f1
+            license: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>\n    <License id=\"Terms\">\n        <MachineBindings>\n            <Binding Key=\"1\" Value=\"d39b8e2f4d364b2e98b06afa0c6e08c5\"/>\n            <Binding Key=\"2\" Value=\"d39b8e2f4d364b2e98b06afa0c6e08c5\"/>\n        </MachineBindings>\n        <MachineID Value=\"Xxo1ZKbdPu/IATrc0mPBYANJFF0=\"/>\n        <SerialHash Value=\"1efd68fa935192b6090ac03c77d289a9f588c55a\"/>\n        <Features>\n            <Feature Value=\"33\"/>\n            <Feature Value=\"1\"/>\n            <Feature Value=\"12\"/>\n            <Feature Value=\"2\"/>\n            <Feature Value=\"24\"/>\n            <Feature Value=\"3\"/>\n            <Feature Value=\"36\"/>\n            <Feature Value=\"17\"/>\n            <Feature Value=\"19\"/>\n            <Feature Value=\"62\"/>\n        </Features>\n        <DeveloperData Value=\"AQAAAEY0LUg2WFMtUE00NS1SM0M4LUUyWlotWkdWOA==\"/>\n        <SerialMasked Value=\"F4-H6XS-PM45-R3C8-E2ZZ-XXXX\"/>\n        <StartDate Value=\"2018-05-02T00:00:00\"/>\n        <UpdateDate Value=\"2019-11-25T18:23:38\"/>\n        <InitialActivationDate Value=\"2018-05-02T14:21:28\"/>\n        <LicenseVersion Value=\"6.x\"/>\n        <ClientProvidedVersion Value=\"2019.2.11f1\"/>\n        <AlwaysOnline Value=\"false\"/>\n        <Entitlements>\n            <Entitlement Ns=\"unity_editor\" Tag=\"UnityPersonal\" Type=\"EDITOR\" ValidTo=\"9999-12-31T00:00:00\"/>\n        </Entitlements>\n    </License>\n<Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments\"/><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"/><Reference URI=\"#Terms\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\"/></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"/><DigestValue>JHdOBFmBNq2H8BrGFzir/StLoYo=</DigestValue></Reference></SignedInfo><SignatureValue>aENLHd37a51RtP2/g7YU0Pexf5mx0/ENXYGtrPzqwZ8NQt2AsSdxGnl0CUB45/GuNXfJVDt2HWot\ncNYZB2OylVBn1WHQbKZlPmm8gEAMz0MYbr4Isb5i5buryBrZlmbEOjnRI+pEg1CBwlgMo6xdtjjE\n/d7cC293QIUO91kdzRXftYou1dNaUyuPL9ZH65vdB2pDXGRNxgUVD+GnnqZA7b5L2HXqNQclcWAK\n5Yd1BeF3VzR1iLw9G/SmH5oOhnpXSmqbL4qk7LVP2/mgXpFk5kP4X8VC3z47obNhBIGq40dwWyEe\nUYk5/nRAOkZawDT+tcu96e06gPC9Cxk5PdbRbA==</SignatureValue></Signature></root>"
+          - unityVersion: 2019.3.15f1
+            license: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root>\n    <License id=\"Terms\">\n        <MachineBindings>\n            <Binding Key=\"1\" Value=\"33bf639e81e54693a8f9bf57c8900e5a\"/>\n            <Binding Key=\"2\" Value=\"33bf639e81e54693a8f9bf57c8900e5a\"/>\n        </MachineBindings>\n        <MachineID Value=\"xWka2iXdDJejhZdi/zU2RUeXUi4=\"/>\n        <SerialHash Value=\"1efd68fa935192b6090ac03c77d289a9f588c55a\"/>\n        <Features>\n            <Feature Value=\"33\"/>\n            <Feature Value=\"1\"/>\n            <Feature Value=\"12\"/>\n            <Feature Value=\"2\"/>\n            <Feature Value=\"24\"/>\n            <Feature Value=\"3\"/>\n            <Feature Value=\"36\"/>\n            <Feature Value=\"17\"/>\n            <Feature Value=\"19\"/>\n            <Feature Value=\"62\"/>\n        </Features>\n        <DeveloperData Value=\"AQAAAEY0LUg2WFMtUE00NS1SM0M4LUUyWlotWkdWOA==\"/>\n        <SerialMasked Value=\"F4-H6XS-PM45-R3C8-E2ZZ-XXXX\"/>\n        <StartDate Value=\"2018-05-02T00:00:00\"/>\n        <UpdateDate Value=\"2020-06-14T13:49:47\"/>\n        <InitialActivationDate Value=\"2018-05-02T14:21:28\"/>\n        <LicenseVersion Value=\"6.x\"/>\n        <ClientProvidedVersion Value=\"2019.3.15f1\"/>\n        <AlwaysOnline Value=\"false\"/>\n        <Entitlements>\n            <Entitlement Ns=\"unity_editor\" Tag=\"UnityPersonal\" Type=\"EDITOR\" ValidTo=\"9999-12-31T00:00:00\"/>\n        </Entitlements>\n    </License>\n<Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments\"/><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"/><Reference URI=\"#Terms\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\"/></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"/><DigestValue>bpzWx3PZ0lqWDo1m9aLQuZ4cweo=</DigestValue></Reference></SignedInfo><SignatureValue>QcDm4/qAXZuUMQbUVk63vO6u66Bp8PnqqWQcZZOcym/rGUZLj1sr66EquF3X3w1L7aqiwMGtbY2b\nkPttcalFeaBkc5NsJMrexWjuBCxQvhbmVFQnTjvC6vNS+k1wrkz7If1oPkz/XaDtCfUs8oxc9iPe\nPzzUJIVYLZoDtpPq2XbgVn9/TiVb3Zu6ldKgvtNRYUjrB3KywtvL9OcIFll3htRcBZPG43kxryJc\nDD2TL5Nw1JuX6MejBBuYTZsZNpGX9Pjop9+uFUZ4GI9h8a5g6wJUfXzsGw7j4gkvDkC9MvyWiksi\n2hNXw1QNeB6JfQsd4sAuhYh/CqTm2gCz9i9ZpA==</SignatureValue></Signature></root>"
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - iOS # Build an iOS player.
+          - Android # Build an Android .apk.
+          #          - StandaloneWindows # Build a Windows standalone.
+          #          - WebGL # WebGL.
+          #          - WSAPlayer # Build an Windows Store Apps player.
+          #          - PS4 # Build a PS4 Standalone.
+          #          - XboxOne # Build a Xbox One Standalone.
+          #          - tvOS # Build to Apple's tvOS platform.
+          #          - Switch # Build a Nintendo Switch player.
 
-      # Activate Unity
-      - name: Unity - Activate
-        uses: webbertakken/unity-activate@v1.2
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+      - uses: actions/cache@v1.1.0
+        with:
+          path: ${{ matrix.projectPath }}/Library
+          key: Library-${{ matrix.projectPath }}-${{ matrix.targetPlatform }}
+          restore-keys: |
+            Library-${{ matrix.projectPath }}-
+            Library-
+      - uses: ./
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-
-  testRunnerInEditMode:
-    name: Test in editmode 📝
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout repository (required to test local actions)
-      - name: Checkout repository
-        uses: actions/checkout@v1
-
-      # Configure test runner
-      - name: Run tests
-        id: testRunner
-        uses: webbertakken/unity-test-runner@v1.6
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_PROJECT_PATH: test-project
-          TEST_MODE: editmode
-
-      # Upload artifact
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v2
+          UNITY_LICENSE: ${{ matrix.license }}
         with:
-          name: Test results (edit mode)
-          path: ${{ steps.testRunner.outputs.artifactsPath }}
-
-  testRunnerInPlayMode:
-    name: Test in playmode 📺
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout repository (required to test local actions)
-      - name: Checkout repository
-        uses: actions/checkout@v1
-
-      # Configure test runner
-      - name: Run tests
-        id: testRunner
-        uses: webbertakken/unity-test-runner@v1.6
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_PROJECT_PATH: test-project
-          TEST_MODE: playmode
-
-      # Upload artifact
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v2
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          customParameters: -profile SomeProfile -someBoolean -someValue exampleValue
+      - uses: actions/upload-artifact@v1
         with:
-          name: Test results (play mode)
-          path: ${{ steps.testRunner.outputs.artifactsPath }}
-
-  testRunnerInAllModes:
-    name: Test all modes ✨
-    runs-on: ubuntu-latest
-    steps:
-      # Checkout repository (required to test local actions)
-      - name: Checkout repository
-        uses: actions/checkout@v1
-
-      # Configure test runner
-      - name: Run tests
-        id: testRunner
-        uses: webbertakken/unity-test-runner@v1.6
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_PROJECT_PATH: test-project
-          TEST_MODE: all
-
-      # Upload artifacts
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: Test results (all modes)
-          path: ${{ steps.testRunner.outputs.artifactsPath }}
-
-  buildForWebGL:
-    name: Build for StandaloneWindows64 🗗
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: webbertakken/unity-builder@v0.5
-        with:
-          projectPath: Project_E/Project E
-          unityVersion: 2019.2.11f1
-          targetPlatform: StandaloneWindows64
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Build
+          name: Build (${{ matrix.unityVersion }})
           path: build
-
-  activateAndThenReturnLicense:
-    name: returnLicense 🎈
-    runs-on: ubuntu-latest
-    env:
-      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-
-    steps:
-      # Checkout repository (required to test local actions)
-      - name: Checkout repository
-        uses: actions/checkout@v1
-
-      # Activate Unity
-      - name: Activate Unity
-        uses: webbertakken/unity-activate@v1.2
-
-      # Return License
-      - name: Return license
-        uses: webbertakken/unity-return-license@v0.1
