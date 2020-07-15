@@ -16,14 +16,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v1
 
-      # Request manual activation file
+      # Request manual activation file 
       - name: Request manual activation file
-        uses: webbertakken/unity-request-manual-activation-file@v1
+        uses: webbertakken/unity-request-activation-file@v1.1
         id: getManualLicenseFile
+        with:
+          unityVersion: 2019.2.11f1 
 
       # Upload artifact (Unity_v20XX.X.XXXX.alf)
       - name: Expose as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Manual Activation File
           path: ${{ steps.getManualLicenseFile.outputs.filePath }}
@@ -38,7 +40,7 @@ jobs:
 
       # Activate Unity
       - name: Unity - Activate
-        uses: webbertakken/unity-activate@v1
+        uses: webbertakken/unity-activate@v1.2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
@@ -53,7 +55,7 @@ jobs:
       # Configure test runner
       - name: Run tests
         id: testRunner
-        uses: webbertakken/unity-test-runner@v1
+        uses: webbertakken/unity-test-runner@v1.6
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_PROJECT_PATH: test-project
@@ -61,7 +63,7 @@ jobs:
 
       # Upload artifact
       - name: Expose as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Test results (edit mode)
           path: ${{ steps.testRunner.outputs.artifactsPath }}
@@ -77,7 +79,7 @@ jobs:
       # Configure test runner
       - name: Run tests
         id: testRunner
-        uses: webbertakken/unity-test-runner@v1
+        uses: webbertakken/unity-test-runner@v1.6
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_PROJECT_PATH: test-project
@@ -85,7 +87,7 @@ jobs:
 
       # Upload artifact
       - name: Expose as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Test results (play mode)
           path: ${{ steps.testRunner.outputs.artifactsPath }}
@@ -101,7 +103,7 @@ jobs:
       # Configure test runner
       - name: Run tests
         id: testRunner
-        uses: webbertakken/unity-test-runner@v1
+        uses: webbertakken/unity-test-runner@v1.6
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_PROJECT_PATH: test-project
@@ -109,7 +111,7 @@ jobs:
 
       # Upload artifacts
       - name: Expose as artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: Test results (all modes)
           path: ${{ steps.testRunner.outputs.artifactsPath }}
@@ -124,7 +126,7 @@ jobs:
           projectPath: Project_E/Project E
           unityVersion: 2019.2.11f1
           targetPlatform: StandaloneWindows64
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: Build
           path: build
@@ -142,7 +144,7 @@ jobs:
 
       # Activate Unity
       - name: Activate Unity
-        uses: webbertakken/unity-activate@v1
+        uses: webbertakken/unity-activate@v1.2
 
       # Return License
       - name: Return license
