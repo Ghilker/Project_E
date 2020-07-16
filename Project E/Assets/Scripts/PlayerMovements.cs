@@ -91,6 +91,7 @@ public class PlayerMovements : MonoBehaviour
     void Dash()
     {
         _velocity += Vector3.Scale(transform.forward, playerStats.playerDashDistance * new Vector3((Mathf.Log(1f / (Time.deltaTime * Drag.x + 1)) / -Time.deltaTime),0,(Mathf.Log(1f / (Time.deltaTime * Drag.z + 1)) / -Time.deltaTime)));
+        Debug.Log(_velocity);
     }
 
     void Lock()

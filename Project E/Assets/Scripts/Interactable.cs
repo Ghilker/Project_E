@@ -38,7 +38,7 @@ public class Interactable : MonoBehaviour
     protected virtual void Interact()
     {
         Debug.Log("Interact");
-        interacted = true;
+        //interacted = true;
     }
 
     protected virtual void OnDrawGizmosSelected()
