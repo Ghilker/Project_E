@@ -9,13 +9,13 @@ public class Chest : Interactable
     public GameObject swordPickUp;
     public GameObject spearPickUp;
 
-    protected override void Awake()
+    public override void Awake()
     {
         base.Awake();
-        interactionTransform = transform.GetChild(0);
+
     }
 
-    protected override void Interact()
+    /*public override void Interact()
     {
         base.Interact();
         int odd = Random.Range(0, 100);
@@ -40,6 +40,6 @@ public class Chest : Interactable
             Instantiate(spearPickUp, transform.position + transform.up * 1.5f, Quaternion.identity);
         }
         
-    }
+    }*/
 
 }

@@ -1,131 +1,80 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class PlayerMovements : MonoBehaviour
 {
-    CharacterController player;
-    PlayerStats playerStats;
-    Transform groundChecker;
-    float groundDistance = 0.55f;
-    Vector3 _velocity;
-    bool isGrounded;
-    bool locked = false;
+    NavMeshAgent player;
+    GameObject _object;
 
-    GameObject[] enemyLocations;
-    GameObject closest;
-
-    [SerializeField, Range(0f, 20f)]
-    float gravityFactor = 10f;
-
-    public LayerMask Ground;
-    public Vector3 Drag;
-    Vector3 inputs;
+    GameObject target;
 
     // Start is called before the first frame update
     void Start()
     {
-        player = GetComponent<CharacterController>();
-        playerStats = GetComponent<PlayerStats>();
-        groundChecker = transform.GetChild(0);
+        player = GetComponent<NavMeshAgent>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        isGrounded = Physics.CheckSphere(groundChecker.position, groundDistance, Ground, QueryTriggerInteraction.Ignore);
-        if(isGrounded && _velocity.y < 0)
+
+        if (target)
         {
-            _velocity.y = 0f;
-        }
-
-        float inputX = Input.GetAxisRaw("Horizontal");
-        float inputZ = Input.GetAxisRaw("Vertical");
-
-        inputs = new Vector3(inputX, 0f, inputZ);
-        if(inputs != Vector3.zero)
-        {
-            inputs = Quaternion.Euler(0f, Camera.main.transform.localEulerAngles.y, 0f) * inputs;
-            Quaternion rotateMe = Quaternion.LookRotation(inputs);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rotateMe, Time.deltaTime * playerStats.playerRotationSpeed);
-
-            
-        }       
-        player.Move(inputs * Time.deltaTime * playerStats.playerSpeed);       
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            Jump();
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            Dash();
-        }
-
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            Lock();
-        }
-
-        if(closest && locked)
-        {
-            transform.LookAt(new Vector3(closest.transform.position.x, transform.position.y, closest.transform.position.z));
-            
-        }
-
-        _velocity.y += -gravityFactor * Time.deltaTime;
-
-        _velocity.x /= 1 + Drag.x * Time.deltaTime;
-        _velocity.y /= 1 + Drag.y * Time.deltaTime;
-        _velocity.z /= 1 + Drag.z * Time.deltaTime;
-
-        player.Move(_velocity * Time.deltaTime);
-    }
-
-    void Jump()
-    {
-        _velocity.y += Mathf.Sqrt(playerStats.playerJumpHeight * -2f * Physics.gravity.y);
-    }
-
-    void Dash()
-    {
-        _velocity += Vector3.Scale(transform.forward, playerStats.playerDashDistance * new Vector3((Mathf.Log(1f / (Time.deltaTime * Drag.x + 1)) / -Time.deltaTime),0,(Mathf.Log(1f / (Time.deltaTime * Drag.z + 1)) / -Time.deltaTime)));
-        Debug.Log(_velocity);
-    }
-
-    void Lock()
-    {
-        FindClosestEnemy();
-        locked = !locked;
-
-        if (locked)
-        {
-            if (!closest)
+            transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
+            if (Vector3.Distance(transform.position, target.transform.position) <= player.stoppingDistance && !target.GetComponent<Interactable>().interacted)
             {
-                locked = false;
-                closest = null;
-                return;
-            }    
-        }
-    }
-    
-    GameObject FindClosestEnemy()
-    {
-        enemyLocations = GameObject.FindGameObjectsWithTag("Enemy");
-        var distance = Mathf.Infinity;
-        var position = transform.position;
-        foreach(var go in enemyLocations)
-        {
-            var diff = (go.transform.position - position);
-            var curDistance = diff.sqrMagnitude;
-
-            if(curDistance < distance)
-            {
-                closest = go;
-                distance = curDistance;
+                _object.GetComponent<Interactable>().Interact(_object, this.gameObject);
             }
         }
-        return closest;
+        
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            
+            if(Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject.CompareTag("Ground"))
+                {
+                    player.SetDestination(hit.point);
+                    OnDefocus();
+                }
+            }
+        }
+        if (Input.GetMouseButtonDown(1))
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if(Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject.CompareTag("Interactable"))
+                {
+                    _object = hit.collider.gameObject;
+                    OnFocus(_object);
+                }
+            }
+        }
+    }
+
+    void OnFocus(GameObject _object)
+    {
+        if(target != null)
+        {
+            target = null;
+        }
+        target = _object;
+        player.stoppingDistance = 3f;
+        player.SetDestination(target.transform.position);
+    }
+    void OnDefocus()
+    {
+        if(target != null)
+        {
+            target = null;
+        }
+        player.stoppingDistance = 0f;
     }
 }

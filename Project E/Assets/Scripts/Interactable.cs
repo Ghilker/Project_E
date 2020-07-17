@@ -4,46 +4,44 @@ using UnityEngine;
 
 public class Interactable : MonoBehaviour
 {
-
-    protected Transform interactionTransform = default;
-
-    public float radius = 1f;
-
-    protected LayerMask playerLayer;
-
-    protected bool interacted = false;
-    // Start is called before the first frame update
-    protected virtual void Awake()
+    #region drop down menu selection
+    public enum objType
     {
-        playerLayer = LayerMask.GetMask(LayerMask.LayerToName(9));
+        Chest,
+        Enemy,
+        Npc,
+        Item
+    }
+    #endregion
+
+    public objType Type;
+
+    public bool interacted = false;
+
+    public virtual void Awake()
+    {
+
     }
 
-    // Update is called once per frame
-    protected void Update()
+    public virtual void Interact(GameObject _object, GameObject otherObj)
     {
-        if (Physics.CheckSphere(interactionTransform.position, radius, playerLayer) && Input.GetKeyDown(KeyCode.E))
+        Interactable getType = _object.GetComponent<Interactable>();
+        if (getType.Type == objType.Chest)
         {
-            if (!interacted)
-            {
-                Interact();
-            }
-            else
-            {
-                Debug.Log("Can't do that");
-            }
-            
+            Debug.Log("Open");
+            interacted = true;
         }
-    }
-
-    protected virtual void Interact()
-    {
-        Debug.Log("Interact");
-        //interacted = true;
-    }
-
-    protected virtual void OnDrawGizmosSelected()
-    {
-        interactionTransform = transform.GetChild(0);
-        Gizmos.DrawWireSphere(interactionTransform.position, radius);
+        else if(getType.Type == objType.Enemy)
+        {
+            Debug.Log("Kill");
+        }
+        else if (getType.Type == objType.Npc)
+        {
+            Debug.Log("Talk");
+        }
+        else if (getType.Type == objType.Item)
+        {
+            Debug.Log("Collect");
+        }
     }
 }
