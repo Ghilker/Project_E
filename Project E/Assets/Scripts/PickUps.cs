@@ -22,21 +22,7 @@ public class PickUps : MonoBehaviour
 
     protected virtual void Start()
     {
-        Animator animator = gameObject.AddComponent<Animator>();
-        animator.runtimeAnimatorController = Instantiate(Resources.Load("PickUp")) as RuntimeAnimatorController;
-    }
-
-    protected virtual void Update()
-    {
-
-    }
-
-    protected virtual void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.CompareTag("Player"))
-        {
-            PickUpObject(other.gameObject);
-        }
+        
     }
 
     protected virtual void PickUpObject(GameObject other)

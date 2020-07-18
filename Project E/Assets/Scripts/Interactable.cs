@@ -16,6 +16,7 @@ public class Interactable : MonoBehaviour
 
     public objType Type;
 
+    [HideInInspector]
     public bool interacted = false;
 
     public virtual void Awake()
@@ -28,8 +29,9 @@ public class Interactable : MonoBehaviour
         Interactable getType = _object.GetComponent<Interactable>();
         if (getType.Type == objType.Chest)
         {
-            Debug.Log("Open");
+            //Debug.Log("Open");
             interacted = true;
+            _object.GetComponent<Chest>().Interact();
         }
         else if(getType.Type == objType.Enemy)
         {
